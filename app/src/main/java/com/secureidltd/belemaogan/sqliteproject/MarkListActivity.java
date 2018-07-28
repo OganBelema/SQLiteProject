@@ -1,8 +1,13 @@
 package com.secureidltd.belemaogan.sqliteproject;
 
+import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,7 +18,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MarkListActivity extends AppCompatActivity {
+public class MarkListActivity extends AppCompatActivity{
     RecyclerView mRecyclerView;
     MyAdapter myAdapter;
     private DatabaseHelper mDatabaseHelper;
@@ -30,17 +35,19 @@ public class MarkListActivity extends AppCompatActivity {
         myAdapter = new MyAdapter(this, new MyAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(Cursor cursor) {
-                StringBuilder stringBuilder = new StringBuilder();
-                String name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_2));
-                String surname = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_3));
-                String mark = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_4));
+                if (cursor != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    String name = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_2));
+                    String surname = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_3));
+                    String mark = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_4));
 
-                stringBuilder.append("FirstName: ").append(name);
-                stringBuilder.append("\n");
-                stringBuilder.append("LastName: ").append(surname);
-                stringBuilder.append("\n");
-                stringBuilder.append("Mark: ").append(mark);
-                showMessage("Item Details", stringBuilder.toString());
+                    stringBuilder.append("FirstName: ").append(name);
+                    stringBuilder.append("\n");
+                    stringBuilder.append("LastName: ").append(surname);
+                    stringBuilder.append("\n");
+                    stringBuilder.append("Mark: ").append(mark);
+                    showMessage("Item Details", stringBuilder.toString());
+                }
             }
         });
         mRecyclerView.setAdapter(myAdapter);
@@ -62,6 +69,7 @@ public class MarkListActivity extends AppCompatActivity {
             }
         });
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
     }
 
     @Override
@@ -85,6 +93,12 @@ public class MarkListActivity extends AppCompatActivity {
         builder.setCancelable(true);
         builder.setTitle(title);
         builder.setMessage(message);
+        builder.setNegativeButton("Close", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
         builder.show();
 
     }
