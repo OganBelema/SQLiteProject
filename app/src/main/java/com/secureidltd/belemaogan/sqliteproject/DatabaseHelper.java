@@ -5,6 +5,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.Uri;
+
+import java.net.URI;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -16,6 +19,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_2 = "NAME";
     public static final String COLUMN_3 = "SURNAME";
     public static final String COLUMN_4 = "MARKS";
+
+    public static final String AUTHORITY = "com.secureidltd.belemaogan.sqliteproject";
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://"+AUTHORITY);
+    public static final String PATH = "student";
+    public static final Uri CONTENT_URI = Uri.withAppendedPath(BASE_CONTENT_URI, PATH);
 
     private static final String CREATE_TABLE_SQL = "CREATE TABLE "+ TABLE_NAME + " (" +
             COLUMN_1 +" integer PRIMARY KEY AUTOINCREMENT,"
@@ -42,28 +50,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public boolean insertData(String name, String surname, String mark){
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(COLUMN_2, name);
-        contentValues.put(COLUMN_3, surname);
-        contentValues.put(COLUMN_4, mark);
-        long result = sqLiteDatabase.insert(TABLE_NAME, null, contentValues);
-
-        return  (result != -1);
-    }
-
-    public Cursor getAllData(){
-        SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-        return sqLiteDatabase.query(TABLE_NAME,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
-    }
-
     public boolean updateData(String id, String name, String surname, String mark){
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -75,12 +61,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_1 +" = ?",
                 new String[]{id});
         return (result != -1);
-    }
-
-    public int deleteData(String id){
-        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
-        return  sqLiteDatabase.delete(TABLE_NAME,
-                COLUMN_1 + " =?",
-                new String[]{id});
     }
 }

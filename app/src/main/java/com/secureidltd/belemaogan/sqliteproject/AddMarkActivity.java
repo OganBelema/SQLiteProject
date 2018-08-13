@@ -1,10 +1,15 @@
 package com.secureidltd.belemaogan.sqliteproject;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.net.Uri;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -62,38 +67,28 @@ public class AddMarkActivity extends AppCompatActivity implements View.OnClickLi
         switch (id) {
             case R.id.add_to_database_btn:
                 getData();
-                Boolean isSuccessful =
-                    mDatabaseHelper.insertData(name, surname, mark);
-                if (isSuccessful) {
-                Toast.makeText(this, "Insert successful",
-                        Toast.LENGTH_LONG).show();
-                } else {
-                Toast.makeText(this, "Insert unsuccessful",
-                        Toast.LENGTH_LONG).show();
-                }
-                break;
-
-
-            /*case R.id.get_all_data_btn:
-                Cursor databaseDataCursor = mDatabaseHelper.getAllData();
-                if (databaseDataCursor.getCount() == 0){
-                    Toast.makeText(this, "No data",
-                            Toast.LENGTH_LONG).show();
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(DatabaseHelper.COLUMN_2, name);
+                contentValues.put(DatabaseHelper.COLUMN_3, surname);
+                contentValues.put(DatabaseHelper.COLUMN_4, mark);
+                Uri uri;
+                try {
+                    uri = getContentResolver().insert(DatabaseHelper.CONTENT_URI, contentValues);
+                } catch (Exception e){
+                    showMessage("Error", e.getMessage());
                     return;
                 }
 
-                StringBuilder stringBuilder = new StringBuilder();
-                while (databaseDataCursor.moveToNext()){
-                    stringBuilder.append("First name: " + databaseDataCursor.getString(1));
-                    stringBuilder.append("\n");
-                    stringBuilder.append("Last name: " + databaseDataCursor.getString(2));
-                    stringBuilder.append("\n");
-                    stringBuilder.append("Mark: "+ databaseDataCursor.getString(3));
-                    stringBuilder.append("\n\n");
+                String title, message;
+                if (uri == null){
+                    message = "Insert unsuccessful";
+                    title = "Error";
+                } else {
+                    message = "Insert successful";
+                    title = "Message";
                 }
-                showMessage("Data", stringBuilder.toString());
-                break;*/
-
+                showMessage(title, message);
+                break;
 
             case R.id.update_database_btn:
                 getData();
@@ -101,25 +96,30 @@ public class AddMarkActivity extends AppCompatActivity implements View.OnClickLi
                     showMessage("Error", "Provide data ID");
                     return;
                 }
-                boolean result = mDatabaseHelper.updateData(dataID, name, surname, mark);
+                Uri updateUri = ContentUris.withAppendedId(DatabaseHelper.CONTENT_URI, Long.valueOf(dataID));
+                ContentValues values = new ContentValues();
+                values.put(DatabaseHelper.COLUMN_2, name);
+                values.put(DatabaseHelper.COLUMN_3, surname);
+                values.put(DatabaseHelper.COLUMN_4, mark);
+                int result = getContentResolver().update(updateUri, values, null, null);
 
-                if (result)
+                if (result > 0)
                     showMessage("Message", "Update successful");
                 else
                     showMessage("Error", "Update failed");
                 break;
 
-
-            /*case R.id.delete_data_btn:
-                getData();
-                if (TextUtils.isEmpty(dataID)){
-                    showMessage("Error", "Provide data ID");
-                    return;
-                }
-                int numberOfDataDeleted = mDatabaseHelper.deleteData(dataID);
-                showMessage("Alert", "The number of data deleted is " + numberOfDataDeleted);
-                break;*/
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home){
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void showMessage(String title, String message){

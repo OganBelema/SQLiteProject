@@ -1,11 +1,14 @@
 package com.secureidltd.belemaogan.sqliteproject;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
@@ -17,6 +20,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MarkListActivity extends AppCompatActivity{
     RecyclerView mRecyclerView;
@@ -29,6 +33,13 @@ public class MarkListActivity extends AppCompatActivity{
         setContentView(R.layout.activity_mark_list);
         setTitle("Mark List");
         mRecyclerView = findViewById(R.id.recycler_view);
+        FloatingActionButton addDataFab = findViewById(R.id.add_data_fab);
+        addDataFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MarkListActivity.this, AddMarkActivity.class));
+            }
+        });
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mDatabaseHelper = new DatabaseHelper(this);
@@ -51,8 +62,10 @@ public class MarkListActivity extends AppCompatActivity{
             }
         });
         mRecyclerView.setAdapter(myAdapter);
-        Cursor cursor = mDatabaseHelper.getAllData();
-        myAdapter.addCursor(cursor);
+
+        //Cursor cursor = mDatabaseHelper.getAllData();
+
+        myAdapter.addCursor(getContentResolver().query(DatabaseHelper.CONTENT_URI, null, null, null, null));
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT|ItemTouchHelper.RIGHT) {
             @Override
@@ -63,29 +76,15 @@ public class MarkListActivity extends AppCompatActivity{
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
                 long id = (long) viewHolder.itemView.getTag();
-                int numberOfItemsDeleted = mDatabaseHelper.deleteData(String.valueOf(id));
-                myAdapter.addCursor(mDatabaseHelper.getAllData());
+                Uri deleteUri = ContentUris.withAppendedId(DatabaseHelper.CONTENT_URI, id);
+                int numberOfItemsDeleted = getContentResolver().delete(deleteUri, null, null);
+                myAdapter.addCursor(getContentResolver().query(DatabaseHelper.CONTENT_URI,
+                        null, null, null, null));
                 showMessage("Alert", "The number of data deleted is " + numberOfItemsDeleted);
             }
         });
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.add_mark_action){
-            startActivity(new Intent(this, AddMarkActivity.class));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     private void showMessage(String title, String message){
